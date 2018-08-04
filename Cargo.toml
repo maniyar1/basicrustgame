@@ -3,6 +3,9 @@ name = "card_game"
 version = "0.1.0"
 authors = ["Mani Kamali <kamalimani1623@gmail.com>"]
 
+[profile.dev]
+opt-level = 1
+
 [dependencies]
 ggez = "0.4"
 rand = "0.5"
