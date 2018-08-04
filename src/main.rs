@@ -3,8 +3,9 @@ extern crate ggez;
 use ggez::*;
 use ggez::event::{self, Keycode, Mod};
 use ggez::graphics::{DrawMode, Point2};
+use ggez::conf::FullscreenType;
 
-// Holy fucking shit I just wrote this and I don't know what it does
+// Holy fucking shit I just wrote this and I don't know what it doe
 struct MainState {
     pos_x: f32,
     pos_y: f32,
@@ -15,11 +16,6 @@ struct MainState {
     left: bool,
     right: bool
 }
-struct Assets {
-    player_image: graphics::Image,
-}
-
-
 impl MainState {
     fn new(_ctx: &mut Context) -> GameResult<MainState> {
         let s = MainState { pos_x: 0.0, pos_y: 380.0, sprite:graphics::Image::new(_ctx, "/mainplayer.png").unwrap(), speed: 20.0, up: false, down: false, left: false, right: false };
@@ -89,26 +85,29 @@ impl event::EventHandler for MainState {
               self.pos_x = self.pos_x;
               self.pos_y = self.pos_y;
       }
+      println!("pos_x {}, pos_y {}", self.pos_x, self.pos_y);
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
+        ggez::graphics::set_resolution(ctx, 1280, 720);
+        let rect = ggez::graphics::Rect::new(0.0, 0.0, 1280.0, 720.0);
+        ggez::graphics::set_screen_coordinates(ctx, rect).unwrap();
+        graphics::set_background_color(ctx, graphics::WHITE);
         let point = graphics::Point2::new(self.pos_x, self.pos_y);
         graphics::clear(ctx);
         graphics::draw(ctx, &self.sprite, point, 0.0);
-        // graphics::circle(ctx,
-        //                  DrawMode::Fill,
-        //                  Point2::new(self.pos_x, self.pos_y),
-        //                  50.0,
-        //                  0.5)?;
         graphics::present(ctx);
         Ok(())
     }
 }
 
 pub fn main() {
-    let c = conf::Conf::new();
-    let ctx = &mut Context::load_from_conf("super_simple", "ggez", c).unwrap();
+    let mut c = conf::Conf::new();
+    c.window_mode.dimensions(1280, 720);
+    c.window_mode.max_dimensions(1280, 720);
+    c.window_setup.resizable = true;
+    let ctx = &mut Context::load_from_conf("simple", "me", c).unwrap();
     let state = &mut MainState::new(ctx).unwrap();
     event::run(ctx, state).unwrap();
 }
