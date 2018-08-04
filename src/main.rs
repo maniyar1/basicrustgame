@@ -27,8 +27,8 @@ struct MainState {
 
 impl MainState {
     fn new(_ctx: &mut Context) -> GameResult<MainState> {
-        let s = MainState { pos_x: 0.0, pos_y: 380.0, player_width: 80.0, player_length: 80.0, combat_mode: false, sprite:graphics::Image::new(_ctx, "/mainplayer.png").unwrap(), speed: 20.0, up: false, down: false, left: false, right: false,
-         enemy_x: 600.0, enemy_y: 380.0, enemy_width: 80.0, enemy_length: 80.0, enemy_sprite:graphics::Image::new(_ctx, "/enemy1.png").unwrap()};
+        let s = MainState { pos_x: 0.0, pos_y: 380.0, player_width: 140.0, player_length: 140.0, combat_mode: false, sprite:graphics::Image::new(_ctx, "/mainplayer.png").unwrap(), speed: 20.0, up: false, down: false, left: false, right: false,
+         enemy_x: 600.0, enemy_y: 380.0, enemy_width: 140.0, enemy_length: 140.0, enemy_sprite:graphics::Image::new(_ctx, "/enemy1.png").unwrap()};
         Ok(s)
     }
 }
@@ -88,15 +88,20 @@ impl event::EventHandler for MainState {
     // Guys turn back, don't even try
     fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
         let enemyminwidth = self.enemy_x - (self.enemy_width / 2.0);
+        let enemyminlength = self.enemy_y - (self.enemy_length / 2.0);
         let enemymaxwidth = self.enemy_x + (self.enemy_width / 2.0);
 
         let playerminwidth = self.pos_x - (self.player_width / 2.0);
+        let playerminlength = self.pos_y - (self.player_length / 2.0);
         let playermaxwidth = self.pos_x + (self.player_width / 2.0);
 
-        let hitboxdiff = playerminwidth - enemyminwidth;
-        let abshitboxdiff = hitboxdiff.abs();
+        let hitboxdiffx = self.pos_x - self.enemy_x;
+        let hitboxdiffy = self.pos_y - self.enemy_y;
 
-        if abshitboxdiff < (self.player_width / 2.0) {
+        let abshitboxdiffx = hitboxdiffx.abs();
+        let abshitboxdiffy = hitboxdiffy.abs();
+
+        if abshitboxdiffx < (self.player_width / 2.0) && abshitboxdiffy < (self.player_length / 2.0) {
             self.combat_mode = true;
         }
         else if self.right {
