@@ -9,22 +9,36 @@ use ggez::conf::FullscreenType;
 struct MainState {
     pos_x: f32,
     pos_y: f32,
+    player_width: f32,
+    player_length: f32,
+    combat_mode: bool,
     sprite: graphics::Image,
     speed: f32,
     up: bool,
     down: bool,
     left: bool,
-    right: bool
+    right: bool,
+    enemy_x: f32,
+    enemy_y: f32,
+    enemy_width: f32,
+    enemy_length: f32,
+    enemy_sprite: graphics::Image,
 }
+
 impl MainState {
     fn new(_ctx: &mut Context) -> GameResult<MainState> {
-        let s = MainState { pos_x: 0.0, pos_y: 380.0, sprite:graphics::Image::new(_ctx, "/mainplayer.png").unwrap(), speed: 20.0, up: false, down: false, left: false, right: false };
+        let s = MainState { pos_x: 0.0, pos_y: 380.0, player_width: 80.0, player_length: 80.0, combat_mode: false, sprite:graphics::Image::new(_ctx, "/mainplayer.png").unwrap(), speed: 20.0, up: false, down: false, left: false, right: false,
+         enemy_x: 600.0, enemy_y: 380.0, enemy_width: 80.0, enemy_length: 80.0, enemy_sprite:graphics::Image::new(_ctx, "/enemy1.png").unwrap()};
         Ok(s)
     }
 }
 
 impl event::EventHandler for MainState {
 
+    fn resize_event(&mut self, ctx: &mut Context, _width: u32, _height: u32) {
+        let rect = ggez::graphics::Rect::new(0.0, 0.0, 1920.0, 1080.0);
+        ggez::graphics::set_screen_coordinates(ctx, rect).unwrap();
+    }
     fn key_down_event(&mut self, _ctx: &mut Context, keycode: Keycode, keymod: Mod, repeat: bool)    {
     println!(
         "Key pressed: {:?}, modifier {:?}, repeat: {}",
@@ -73,7 +87,19 @@ impl event::EventHandler for MainState {
     }
     // Guys turn back, don't even try
     fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
-        if self.right {
+        let enemyminwidth = self.enemy_x - (self.enemy_width / 2.0);
+        let enemymaxwidth = self.enemy_x + (self.enemy_width / 2.0);
+
+        let playerminwidth = self.pos_x - (self.player_width / 2.0);
+        let playermaxwidth = self.pos_x + (self.player_width / 2.0);
+
+        let hitboxdiff = playerminwidth - enemyminwidth;
+        let abshitboxdiff = hitboxdiff.abs();
+
+        if abshitboxdiff < (self.player_width / 2.0) {
+            self.combat_mode = true;
+        }
+        else if self.right {
          self.pos_x = self.pos_x + self.speed;
         } else if self.down {
               self.pos_y = self.pos_y + self.speed;
@@ -88,15 +114,23 @@ impl event::EventHandler for MainState {
       println!("pos_x {}, pos_y {}", self.pos_x, self.pos_y);
         Ok(())
     }
-
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
-        ggez::graphics::set_resolution(ctx, 1280, 720);
-        let rect = ggez::graphics::Rect::new(0.0, 0.0, 1280.0, 720.0);
-        ggez::graphics::set_screen_coordinates(ctx, rect).unwrap();
-        graphics::set_background_color(ctx, graphics::WHITE);
+        self.resize_event(ctx, 1280, 720);
+        if !self.combat_mode {
+            graphics::set_background_color(ctx, graphics::WHITE);
+        } else {
+            graphics::set_background_color(ctx, graphics::BLACK);
+        }
         let point = graphics::Point2::new(self.pos_x, self.pos_y);
+        let enemy_point = graphics::Point2::new(self.enemy_x, self.enemy_y);
+
         graphics::clear(ctx);
-        graphics::draw(ctx, &self.sprite, point, 0.0);
+        if !self.combat_mode {
+            graphics::draw(ctx, &self.enemy_sprite, enemy_point, 0.0);
+            graphics::draw(ctx, &self.sprite, point, 0.0);
+        } else {
+
+        }
         graphics::present(ctx);
         Ok(())
     }
