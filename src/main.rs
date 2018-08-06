@@ -83,11 +83,11 @@ impl MainState {
             damage
         } else if self.enemy_noomba > 0 && !player {
             self.enemy_noomba = self.enemy_noomba - 1;
-            println!("Enemy Noomba is now: {}", self.enemy_noomba,);
+            // println!("Enemy Noomba is now: {}", self.enemy_noomba,);
             let damage = 50;
             damage
         } else {
-            println!("Not Enough Noomba!",);
+            // println!("Not Enough Noomba!",);
             0
         }
     }
@@ -98,7 +98,7 @@ impl MainState {
             self.enemy_stunned = true;
             damage
         } else {
-            println!("Not Enough Noomba!",);
+            // println!("Not Enough Noomba!",);
             0
         }
     }
@@ -110,10 +110,14 @@ impl MainState {
             graphics::Text::new(ctx, &noomba_cost, &self.little_font)?;
         let card_text_usage_point = graphics::Point2::new(card_x + 40.0, card_y + 260.0);
         let card_text_point = graphics::Point2::new(card_x + 40.0, card_y + 300.0);
+
+        let card_stun_text = graphics::Text::new(ctx, &card_stun, &self.little_font)?;
+        let card_stun_point = graphics::Point2::new(card_x + 40.0, card_y + 230.0);
         graphics::draw(ctx, &card1, card1_point, 0.0).unwrap();
 
         graphics::draw(ctx, &card_text, card_text_point, 0.0).unwrap();
         graphics::draw(ctx, &card_text_usage, card_text_usage_point, 0.0).unwrap();
+        graphics::draw(ctx, &card_stun_text, card_stun_point, 0.0).unwrap();
         Ok(())
     }
     fn stun_text(&mut self, ctx: &mut Context) -> GameResult<()> {
@@ -212,40 +216,47 @@ impl event::EventHandler for MainState {
             self.combat_mode = true;
             if self.num1
                 && self.player_turn
-                && self.ghetto_timer > 30
+                && self.ghetto_timer > 60
                 && self.player_health > 0
                 && self.enemy_health > 0
                 && self.is_card_drawn[0]
             // Player's turn
             {
                 self.enemy_health = self.enemy_health - self.player_use_shadow_attack(true); // Takes in if the user is player, and outputs the damage, auto calculates noomba cost
-                println!("Enemy Health is now: {}", self.enemy_health);
                 self.player_noomba = self.player_noomba + 1;
                 self.player_turn = false;
                 self.ghetto_timer = 0;
                 self.is_card_drawn[0] = false;
             } else if !self.player_turn              // Enemy's turn
-                && self.ghetto_timer > 30
+                && self.ghetto_timer > 60
                 && self.enemy_health > 0
                 && self.player_health > 0
                 && !self.enemy_stunned
             {
                 self.player_health = self.player_health - self.player_use_shadow_attack(false);
-                println!("Player Health is now: {}", self.player_health);
                 self.enemy_noomba = self.enemy_noomba + 1;
                 self.player_turn = true;
                 self.ghetto_timer = 0;
                 self.is_card_drawn[1] = true;
-            } else if self.enemy_stunned && self.ghetto_timer > 15 {
+            } else if self.enemy_stunned && self.ghetto_timer > 30 {
                 self.enemy_noomba = self.enemy_noomba + 1;
                 self.player_turn = true;
                 self.enemy_stunned = false;
             } else if self.enemy_health < 1 {
                 self.combat_mode = false;
                 self.enemy_dead = true;
+            } else if self.player_health < 1 {
+                self.combat_mode = false;
+                self.pos_x = 0.0;
+                self.player_health = 100;
+                self.enemy_health = 100;
+                self.enemy_noomba = 1;
+                self.player_noomba = 1;
+                self.is_card_drawn[0] = true;
+                self.is_card_drawn[1] = false;
             } else if self.num8
                 && self.player_turn
-                && self.ghetto_timer > 30
+                && self.ghetto_timer > 60
                 && self.player_health > 0
                 && self.enemy_health > 0
             {
@@ -254,7 +265,7 @@ impl event::EventHandler for MainState {
                 self.ghetto_timer = 0;
             } else if self.num2
             && self.player_turn
-            && self.ghetto_timer > 30
+            && self.ghetto_timer > 60
             && self.player_health > 0
             && self.enemy_health > 0
             && self.is_card_drawn[1]
@@ -338,7 +349,12 @@ impl event::EventHandler for MainState {
             let enemy_health_text = graphics::Text::new(ctx, &enemy_health_str, &self.text_font)?;
             let player_health_text = graphics::Text::new(ctx, &player_health_str, &self.text_font)?;
             let enemy_health_text_point = graphics::Point2::new(1400.0, 200.0);
-            let player_health_text_point = graphics::Point2::new(120.0, 700.0);
+            let player_health_text_point = graphics::Point2::new(120.0, 800.0);
+
+            let beginner_instructions_text = graphics::Text::new(ctx, "Press 8 to pass, draw a new ", &self.text_font)?;
+            let beginner_instructions_text2 = graphics::Text::new(ctx, "card and gain one noomba", &self.text_font)?;
+            let beginner_instructions_text_point = graphics::Point2::new(120.0, 650.0);
+            let beginner_instructions_text_point2 = graphics::Point2::new(120.0, 700.0);
 
             let card_text_enemy = graphics::Text::new(ctx, "Enemy card", &self.text_font)?;
             let card_text_enemy_point = graphics::Point2::new(760.0, 0.0);
@@ -369,6 +385,9 @@ impl event::EventHandler for MainState {
 
             graphics::draw(ctx, &enemy_health_text, enemy_health_text_point, 0.0)?;
             graphics::draw(ctx, &player_health_text, player_health_text_point, 0.0)?;
+
+            graphics::draw(ctx, &beginner_instructions_text, beginner_instructions_text_point, 0.0)?;
+            graphics::draw(ctx, &beginner_instructions_text2, beginner_instructions_text_point2, 0.0)?;
             self.stun_text(ctx).unwrap();
         }
         graphics::present(ctx);
